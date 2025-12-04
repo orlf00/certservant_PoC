@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Přidat zařízení | CertServant{% endblock %}
+{% block content %}
+<div>
+  <h1>{{ "Upravit zařízení" if mode == "edit" else "Přidat zařízení" }}</h1>
+    <div>
+        <button class="btn btn-info fw-bold" onclick="window.location.href='/'"><-- Zpět</button>
+    </div>
+
+  <form method="POST" action="{{ form_action }}" autocomplete="off">
+    {{ form.hidden_tag() }}
+
+    <!-- Povinné položky - minimum pro kontrolu expirace -->
+    <fieldset>
+      <legend>Minimum pro kontrolu expirace</legend>
+      <div>
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.url.id }}">Doména (bez https)</label>
+          {{ form.url(class="form-control",id=form.url.id, size=50) }}
+          <small class="hint">Například: <code>example.com</code></small>
+        </div>
+          <div class="form-check mb-3">
+              {{ form.redfish(class="form-check-input", id=form.redfish.id) }}
+              <label class="form-check-label" for="{{ form.redfish.id }}">Redfish endpoint (volitelné)</label>
+          </div>
+          {%  if device.successful %}
+          <div class="form-check mb-3">
+                {{ form.automatic_renew(class="form-check-input", id=form.automatic_renew.id) }}
+                <label class="form-check-label" for="{{ form.automatic_renew.id }}">Povolit automatickou obnovu certifikátu</label>
+          </div>
+            {% endif %}
+      </div>
+    </fieldset>
+
+    <!-- Nepovinné položky - základní obnova certifikátů -->
+    <fieldset>
+      <legend>Položky pro obnovu certifikátů -  základní obnova certifikátů</legend>
+      <div>
+        <div>
+          <label class="form-label" for="{{ form.renew_server.id }}">ACME poskytovatel</label>
+          {{ form.renew_server(class="form-control",id=form.renew_server.id, list="options", size=50) }}
+          <datalist id="options">
+            <option value="https://acme-v02.api.letsencrypt.org/directory">
+            <option value="https://acme-staging-v02.api.letsencrypt.org/directory">
+            <option value="https://acme.zerossl.com/v2/DV90">
+            <option value="https://dv.acme-v02.api.pki.goog/directory">
+            <option value="https://dv.acme-v02.test-api.pki.goog/directory">
+          </datalist>
+          <small>Vyberte ze seznamu, nebo vložte vlastní</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.login.id }}">Login do zařízení</label>
+          {{ form.login(class="form-control",id=form.login.id, size=50) }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.password.id }}">Heslo do zařízení</label>
+          {{ form.password(class="form-control",id=form.password.id, size=50) }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.prompt.id }}">Prompt pro nahrání certu (anglicky)</label>
+          {{ form.prompt(class="form-control",id=form.prompt.id, size=50) }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.nsupdate_key.id }}">nsupdate key</label>
+          {{ form.nsupdate_key(class="form-control",id=form.nsupdate_key.id, size=50) }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.nsupdate_server.id }}">nsupdate server</label>
+          {{ form.nsupdate_server(class="form-control",id=form.nsupdate_server.id, size=50) }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.nsupdate_zone.id }}">Zóna nsupdate</label>
+          {{ form.nsupdate_zone(class="form-control",id=form.nsupdate_zone.id, size=50) }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.nsupdate_name.id }}">Název TSIG klíče</label>
+          {{ form.nsupdate_name(class="form-control",id=form.nsupdate_name.id, size=50) }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.nsupdate_subdomain.id }}">Nsupdate subdoména [např. pro *.(nsupdate_zone) zadejte *]</label>
+          {{ form.nsupdate_subdomain(class="form-control",id=form.nsupdate_subdomain.id, size=50) }}
+        </div>
+      </div>
+
+      <div class="mb-3">
+          <div class="form-check">
+            {{ form.upload_key(class="form-check-input", id="upload_key") }}
+            <label class="form-check-label" for="upload_key">
+              Nahrát soukromý klíč
+            </label>
+          </div>
+
+          <div class="form-check">
+            {{ form.upload_cert(class="form-check-input", id="upload_cert") }}
+            <label class="form-check-label" for="upload_cert">
+              Nahrát koncový certifikát
+            </label>
+          </div>
+
+          <div class="form-check">
+            {{ form.upload_intermediate(class="form-check-input", id="upload_intermediate") }}
+            <label class="form-check-label" for="upload_intermediate">
+                Nahrát koncový certifikát+intermediate
+            </label>
+          </div>
+
+          <div class="form-check">
+            {{ form.upload_certkey(class="form-check-input", id="upload_certkey") }}
+            <label class="form-check-label" for="upload_certkey">
+              Nahrát koncový certifikát + klíč v jednom souboru
+            </label>
+          </div>
+
+          <div class="form-check">
+            {{ form.upload_interssl(class="form-check-input", id="upload_interssl") }}
+            <label class="form-check-label" for="upload_interssl">
+                Nahrát koncový certifikát+intermediate a klíč v jednom souboru
+            </label>
+          </div>
+    </div>
+        <div class="mb-3">
+          <label for="keytype" class="form-label">Typ klíče</label>
+          <div class="text-danger" style="font-size: 0.9em;">
+            (Nefunguje na redfish zařízeních)
+          </div>
+          {{ form.keytype(class="form-select", id="keytype") }}
+        </div>
+    </fieldset>
+    <!-- Nepovinné položky - pokročilé - pouze pro EAB autentizaci -->
+    <fieldset>
+      <legend>Nepovinné položky – External Account Binding</legend>
+      <div>
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.eab_kid.id }}">EAB KID</label>
+          {{ form.eab_kid(class="form-control",id=form.eab_kid.id, size=50) }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="{{ form.eab_key.id }}">EAB Key (HMAC)</label>
+          {{ form.eab_key(class="form-control",id=form.eab_key.id, size=50) }}
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="mb-3">
+      {{ form.button(class_="btn btn-primary", value= submit_label) }}
+    </div>
+  </form>
+
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const redfish = document.getElementById("redfish");
+    const prompt = document.getElementById("prompt");
+    const key = document.getElementById("upload_key");
+    const cert = document.getElementById("upload_cert");
+    const certkey = document.getElementById("upload_certkey");
+    const inter = document.getElementById("upload_intermediate");
+    const interssl = document.getElementById("upload_interssl");
+
+    function updateState() {
+        [key, cert, certkey, inter, interssl, prompt, redfish].forEach(function(item) {
+            item.disabled = false;
+        });
+        if (key.checked) {
+            certkey.disabled = true;
+            cert.disabled = false;
+            inter.disabled = false;
+            interssl.disabled = true;
+            prompt.disabled = false;
+            redfish.disabled = true;
+        }
+        if (cert.checked) {
+            key.disabled = false;
+            interssl.disabled = true;
+            inter.disabled = true;
+            certkey.disabled = true;
+            prompt.disabled = false;
+            redfish.disabled = false;
+        }
+        if (certkey.checked) {
+            key.disabled = true;
+            cert.disabled = true;
+            inter.disabled = true;
+            interssl.disabled = true;
+            prompt.disabled = false;
+            redfish.disabled = true;
+        }
+
+        if (inter.checked) {
+            key.disabled = false;
+            cert.disabled = true;
+            certkey.disabled = true;
+            interssl.disabled = true;
+            prompt.disabled = false;
+            redfish.disabled = false;
+        }
+        if (interssl.checked) {
+            key.disabled = true;
+            cert.disabled = true;
+            certkey.disabled = true;
+            inter.disabled = true;
+            prompt.disabled = false;
+            redfish.disabled = true;
+        }
+        if (redfish.checked) {
+            key.disabled = true;
+            cert.disabled = true;
+            certkey.disabled = true;
+            inter.disabled = false;
+            prompt.disabled = true;
+            interssl.disabled = true;
+        }
+
+
+    }
+
+    [key, cert, certkey, inter, interssl, redfish, prompt].forEach(el => {
+        el.addEventListener("change", updateState);
+    });
+
+    updateState();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}CertServant - Hlavní stránka{% endblock %}
+{% block content %}
+
+<h1>Seznam zařízení</h1>
+
+<div class="d-flex gap-2">
+    <button class="btn btn-info fw-bold" onclick="window.location.href='/add-device'">
+        + Přidat zařízení
+    </button>
+
+    <form action="{{ url_for('refresh') }}" method="post" class="m-0">
+        {{ form.csrf_token }}
+        <button type="submit" class="btn btn-success">
+            Refresh
+        </button>
+    </form>
+</div>
+
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Doména</th>
+            <th scope="col">Expirace</th>
+            <th scope="col">Automatická obnova</th>
+            <th scope="col">Upravit zařízení</th>
+            <th scope="col">Odebrat zařízení</th>
+            <th scope="col">Generovat certifikát</th>
+            <th scope="col">Stažení</th>
+            <th scope="col">SN vydaného certifikátu = SN certifikátu na zařízení</th>
+            <th scope="col">Poslední pokus o obnovu</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for device in devices %}
+        <tr>
+            <td class="fw-bold">{{ device.id }}</td>
+            <td class="text-decoration-underline">{{ device.domain }}</td>
+            <td>{{ device.notafter }}</td>
+            <td>
+                {% if device.automatic_renew %}
+                    Ano
+                {% else %}
+                    Ne
+                {% endif %}
+            </td>
+            <td>
+                <button class="btn btn-warning" onclick="window.location.href='/edit-device/{{ device.id }}'">
+                    Upravit
+                </button>
+            </td>
+            <td>
+                    <button class="btn btn-danger" onclick="window.location.href='/delete-device/{{ device.id }}'">
+                        Odebrat
+                    </button>
+            </td>
+            <td>
+                    {% set case1 = (
+                      device.domain and device.redfish and device.login and device.password and
+                      device.nsupdate_key and device.nsupdate_server and device.nsupdate_zone and
+                      device.nsupdate_name and device.nsupdate_subdomain and device.renew_server and device.keytype and
+                      (device.upload_cert or device.upload_fullchain or device.upload_key or device.upload_certkey or device.upload_intermediate or device.upload_interssl)
+                    ) %}
+
+                    {% set case2 = (
+                      device.domain and device.login and device.password and device.prompt and
+                      device.nsupdate_key and device.nsupdate_server and device.nsupdate_zone and
+                      device.nsupdate_name and device.nsupdate_subdomain and device.renew_server and device.keytype and
+                      (device.upload_cert or device.upload_fullchain or device.upload_key or device.upload_certkey or device.upload_intermediate or device.upload_interssl)
+                    ) %}
+
+                    {% if case1 or case2 %}
+                      <button class="btn btn-success"
+                              onclick="window.location.href='/renew-cert/{{ device.id }}/generate'">
+                        Generovat certifikát
+                      </button>
+                    {% endif %}
+            </td>
+            <td>
+              {% if device.dload %}
+                <div class="d-flex flex-wrap" style="gap: 6px;">
+                  <a class="badge bg-secondary text-light p-2"
+                     href="{{ url_for('dwncert', device_id=device.id, filetype='cert') }}">
+                    Certifikát
+                  </a>
+
+                  <a class="badge bg-secondary text-light p-2"
+                     href="{{ url_for('dwncert', device_id=device.id, filetype='chain') }}">
+                    Fullchain
+                  </a>
+                  <a class="badge bg-secondary text-light p-2"
+                     href="{{ url_for('dwncert', device_id=device.id, filetype='intermediate') }}">
+                    Certifikát + Intermediate
+                  </a>
+
+                  {% if not device.redfish %}
+                    <a class="badge bg-secondary text-light p-2"
+                       href="{{ url_for('dwncert', device_id=device.id, filetype='pkey') }}">
+                      Soukromý klíč
+                    </a>
+
+                    <a class="badge bg-secondary text-light p-2"
+                       href="{{ url_for('dwncert', device_id=device.id, filetype='keycert') }}">
+                      Klíč + Certifikát
+                    </a>
+                    <a class="badge bg-secondary text-light p-2"
+                       href="{{ url_for('dwncert', device_id=device.id, filetype='interssl') }}">
+                      Klíč + Certifikát + Intermediate
+                    </a>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </td>
+
+            <td>{{ "Ano" if device.serial_num==device.local_sn else "" }}</td>
+            <td>{{ device.last_renew if device.last_renew else "-" }}</td>
+
+
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

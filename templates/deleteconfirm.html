@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Smazat složku? | CertServant{% endblock %}
+{% block content %}
+<div>
+    <p>Smazat složku s certifikáty?</p>
+    <form method="POST" autocomplete="off">
+        {{ form.hidden_tag() }}
+        <p>{{ form.confirm }}</p>
+        <p>{{ form.deny }}</p>
+    </form>
+</div>
+{% endblock %}

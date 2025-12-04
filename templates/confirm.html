@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Potvrzení | CertServant{% endblock %}
+{% block content %}
+<div>
+    <p>Byl certifikát úspěšně nahrán na zařízení? (Před potvrzením se ujistěte, že zařízení už je restartované a dostupné)</p>
+    <form method="POST" autocomplete="off">
+        {{ form.hidden_tag() }}
+        <p>{{ form.confirm }}</p>
+        <p>{{ form.deny }}</p>
+        <p>{{ form.renew }} {{ form.renew.label }}</p>
+    </form>
+</div>
+{% endblock %}

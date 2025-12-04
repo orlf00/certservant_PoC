@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Potvrzení o smazání | CertServant{% endblock %}
+{% block content %}
+<div>
+
+  <div>
+    <h1>Opravdu smazat zařízení?</h1>
+    <p>Chystáš se smazat zařízení s ID: <strong>{{ device_id }}</strong>.</p>
+    <p>Tato akce odstraní záznam ze seznamu a smaže složku s certifikáty (pokud existuje). Operaci nelze vrátit.</p>
+
+    <form method="POST" action="{{ url_for('delete_device_route', device_id=device_id) }}">
+      {{ form.hidden_tag() }}
+      <div>
+        {{ form.confirm(class_="btn btn-danger", value="Ano, smazat") }}
+        {{ form.deny(class_="btn btn-secondary", value="Ne, zrušit") }}
+      </div>
+    </form>
+
+    <p>
+      <a href="{{ url_for('index') }}">← Zpět na přehled</a>
+    </p>
+  </div>
+
+</div>
+{% endblock %}
