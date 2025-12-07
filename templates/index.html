@@ -84,11 +84,6 @@
                      href="{{ url_for('dwncert', device_id=device.id, filetype='cert') }}">
                     Certifikát
                   </a>
-
-                  <a class="badge bg-secondary text-light p-2"
-                     href="{{ url_for('dwncert', device_id=device.id, filetype='chain') }}">
-                    Fullchain
-                  </a>
                   <a class="badge bg-secondary text-light p-2"
                      href="{{ url_for('dwncert', device_id=device.id, filetype='intermediate') }}">
                     Certifikát + Intermediate
